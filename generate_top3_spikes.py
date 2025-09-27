@@ -94,7 +94,7 @@ def main():
     print("=" * 60)
     
     csv_path = "video_with_comments_with_scaled_engagement.csv"
-    video_path = "demo-video-5min.mp4"
+    video_path = "kaicenat.mov"
     
     if not Path(csv_path).exists():
         print(f"❌ CSV file not found: {csv_path}")

@@ -15,10 +15,17 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Media files (optional - uncomment if you don't want to track large files)
-# *.mp4
-# *.mov
-# *.avi
+# Media files - exclude large video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Media directories
+media/input/
+media/output/
+media/engagement/
 
 # Logs
 *.log

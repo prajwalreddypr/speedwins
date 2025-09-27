@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any, Tuple
 import os, subprocess, math, csv
 from pathlib import Path
@@ -11,6 +13,18 @@ for p in (MEDIA_IN, MEDIA_OUT, ENG_DIR):
     p.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="ClipPulse Backend (CSV + Dynamic Window)")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8081", "http://127.0.0.1:8081", "http://localhost:8080", "http://127.0.0.1:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files for serving video clips
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 @app.get("/health")
 def health():
