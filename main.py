@@ -222,8 +222,14 @@ def cut_clip(input_path: str, center_time: float, pre: float, post: float) -> st
     duration = pre + post
     base = os.path.splitext(os.path.basename(input_path))[0]
     out_path = str(MEDIA_OUT / f"{base}_clip_{int(start)}_{int(duration)}.mp4")
+    # Use local FFmpeg if available
+    ffmpeg_path = "ffmpeg"
+    local_ffmpeg = Path(__file__).parent / "ffmpeg_bin" / "ffmpeg-master-latest-win64-gpl" / "bin" / "ffmpeg.exe"
+    if local_ffmpeg.exists():
+        ffmpeg_path = str(local_ffmpeg)
+    
     cmd = [
-        "ffmpeg",
+        ffmpeg_path,
         "-ss", str(start),
         "-t", str(duration),
         "-i", input_path,
