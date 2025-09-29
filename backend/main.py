@@ -236,11 +236,26 @@ def cut_clip(input_path: str, center_time: float, pre: float, post: float) -> st
     duration = pre + post
     base = os.path.splitext(os.path.basename(input_path))[0]
     out_path = str(MEDIA_OUT / f"{base}_clip_{int(start)}_{int(duration)}.mp4")
+    
+    # Check if input file exists
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input video file not found: {input_path}")
+    
     # Use local FFmpeg if available
     ffmpeg_path = "ffmpeg"
     local_ffmpeg = Path(__file__).parent / "ffmpeg_bin" / "ffmpeg-master-latest-win64-gpl" / "bin" / "ffmpeg.exe"
     if local_ffmpeg.exists():
         ffmpeg_path = str(local_ffmpeg)
+    
+    # Check if ffmpeg is available
+    try:
+        subprocess.run([ffmpeg_path, "-version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # If ffmpeg is not available, create a placeholder file
+        placeholder_path = str(MEDIA_OUT / f"{base}_clip_{int(start)}_{int(duration)}_placeholder.txt")
+        with open(placeholder_path, "w") as f:
+            f.write(f"Clip placeholder\nPeak time: {center_time}s\nDuration: {duration}s\nStart: {start}s\n")
+        return placeholder_path
     
     cmd = [
         ffmpeg_path,

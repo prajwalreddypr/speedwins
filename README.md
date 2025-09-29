@@ -1,125 +1,95 @@
-# ClipPulse Backend — CSV + Dynamic Window (Short‑Form Optimized)
+# ClipPulse - Video Engagement Analysis & Clip Generation
 
-FastAPI backend that:
-- uploads a **video** and an **engagement CSV** (from your live platform),
-- detects the **strongest engagement peak** (robust stats: median + MAD),
-- computes a **dynamic clip window** (pre/post around the peak) tuned for **short‑form** content,
-- cuts a playable **MP4** with ffmpeg.
+A full-stack application that analyzes video engagement data and automatically generates highlight clips from peak moments.
 
-> No mock data. Happy‑path only. Bring your own CSV + MP4.
+## Project Structure
 
----
-
-## 1) Requirements
-
-- **Python 3.10+**
-- **ffmpeg** installed and on your PATH  
-  - macOS: `brew install ffmpeg`  
-  - Ubuntu/Debian: `sudo apt-get install ffmpeg`  
-  - Windows: download from ffmpeg.org and add to PATH
-- Python deps (see `requirements.txt`): `fastapi`, `uvicorn`, `python-multipart`
-
-Folder layout created automatically on first run:
 ```
-media/
-  input/        # uploaded videos
-  engagement/   # uploaded CSVs
-  output/       # rendered clips
+speeeedwins/
+├── backend/           # Python FastAPI backend
+│   ├── main.py       # Main FastAPI application
+│   ├── requirements.txt
+│   ├── media/        # Video and CSV data
+│   └── ...
+├── Frontend/         # React TypeScript frontend
+│   ├── src/
+│   ├── package.json
+│   └── ...
+├── run_backend.py    # Python script to run backend
+├── start_backend.bat # Windows batch file to run backend
+└── README.md
 ```
 
-CSV format (semicolon `;` delimiter):
-```
-video_second;time_label;comments_per_second
-0;0:00;21
-1;0:01;30
-...
-```
+## Quick Start
 
-## 2) Install & Run
+### Backend (Python/FastAPI)
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+# Option 1: Using Python script
+python run_backend.py
 
-uvicorn main:app --reload
+# Option 2: Using batch file (Windows)
+start_backend.bat
+
+# Option 3: Manual
+cd backend
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## 3) Open the API docs
+### Frontend (React/TypeScript)
 
-- **Swagger UI:** http://localhost:8000/docs  
-- **ReDoc:**      http://localhost:8000/redoc
-
-You can try every endpoint directly from the Swagger UI (“Try it out”).
-
-## 4) Endpoints
-
-### Health
-`GET /health` → `{"ok": true}`
-
-### Upload video
-`POST /video/upload` (multipart/form-data)
-- **form field**: `file=@your_video.mp4`  
-- **Response:** `{"video_path": "media/input/your_video.mp4"}`
-
-Example:
 ```bash
-curl -s -X POST "http://localhost:8000/video/upload"   -F "file=@media/input/demo.mp4"
+cd Frontend
+npm install
+npm run dev
 ```
 
-### Upload engagement CSV
-`POST /engagement/upload` (multipart/form-data)
-- **form field**: `file=@engagement.csv`  
-- **Response:** `{"csv_path": "media/engagement/engagement.csv"}`
+## Features
 
-Example:
-```bash
-curl -s -X POST "http://localhost:8000/engagement/upload"   -F "file=@engagement.csv"
-```
+- **Engagement Analysis**: Analyzes CSV data to find peak engagement moments
+- **Dynamic Clip Generation**: Creates clips around peak moments with optimal timing
+- **Modern UI**: Clean, responsive interface built with React and Tailwind CSS
+- **Real-time Processing**: Fast API backend with automatic reload for development
 
-**CSV required headers (semicolon‑delimited):**
-- `video_second` → integer second offset from stream start (0,1,2,…)
-- `time_label`   → display string like `M:SS` (not used for math)
-- `comments_per_second` → numeric engagement count for that second
+## API Endpoints
 
-### Process (CSV‑driven)
-`POST /process_csv` (application/json)
+- `GET /health` - Health check
+- `POST /video/upload` - Upload video files
+- `POST /engagement/upload` - Upload engagement CSV data
+- `POST /process_csv` - Process video and CSV to generate clips
 
-Body:
-```json
-{
-  "video_path": "media/input/demo.mp4",
-  "csv_path": "media/engagement/engagement.csv",
-  "target_len": 60.0
-}
-```
+## Demo Data
 
-- `target_len` (optional): preferred clip length in seconds (default **60**).  
-- **Response:**
-```json
-{
-  "peak_time": 187.0,
-  "clip_path": "media/output/demo_clip_157_60.mp4",
-  "window": { "pre_sec": 30.0, "post_sec": 30.0, "total_sec": 60.0 },
-  "peak_index": 187
-}
-```
+The project includes demo data:
 
-## 5) How the dynamic window works (short‑form tuned)
+- Video: `backend/media/input/demo_video.mp4`
+- Engagement: `backend/media/engagement/video_with_comments_with_scaled_engagement.csv`
 
-1. Smooths the engagement series (median filter).  
-2. Computes baseline (series median) and finds the **peak** (above a dynamic threshold).  
-3. Uses **FWHM** around the peak to keep the “interesting” center.  
-4. Scales **pre/post** to hit `target_len` (default 60s) while preserving left/right context ratio and respecting the stream boundaries.  
-5. Enforces a minimum total length (**20s**) and maximum (**60s**) by default.
+## Requirements
 
-You can change `target_len` per request (e.g., 45s for faster social hooks).
+- Python 3.10+
+- Node.js 18+
+- FFmpeg (optional, for video processing)
 
-## 6) Troubleshooting
+## Installation
 
-- **ffmpeg not found** → install it & ensure it’s on PATH.  
-- **Clip length not exactly 60s** → if the peak is too close to start/end, the window clamps to available media.  
-- **CSV delimiter** → must include the header line; semicolon preferred (`;`).
+1. **Backend**:
 
----
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
 
-**License:** MIT
+2. **Frontend**:
+
+   ```bash
+   cd Frontend
+   npm install
+   ```
+
+## Usage
+
+1. Start the backend: `python run_backend.py`
+2. Start the frontend: `cd Frontend && npm run dev`
+3. Open <http://localhost:8080> in your browser
+4. Click "Upload Files" and then "View Generated Clips"

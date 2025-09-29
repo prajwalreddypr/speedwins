@@ -1,0 +1,4 @@
+Clip placeholder
+Peak time: 122.0s
+Duration: 60.0s
+Start: 92.0s
